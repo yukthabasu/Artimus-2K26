@@ -1,4 +1,4 @@
-﻿# Python environments
+# Python environments
 .venv/
 .venv-linux/
 venv/
@@ -17,10 +17,16 @@ __pycache__/
 
 # Temporary and backup files
 *.bak
-*.backup
+*.backup*
+*backup*
+*_before_*
 *.contact-backup
 *.countdown-backup
 *.event-backup
+
+# Distribution and archives
+*.zip
+*.tar.gz
 
 # System files
 .DS_Store

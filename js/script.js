@@ -1,4 +1,4 @@
-﻿// Artimus 2k26 - Arcane/Neuraverse Theme JavaScript
+// Artimus 2k26 - Arcane/Neuraverse Theme JavaScript
 
 // --- Event Data (Rules & Character details) ---
 const eventData = {
@@ -248,6 +248,15 @@ window.addEventListener('scroll', () => {
 // Interaction Observers for Element reveals
 const revealElements = document.querySelectorAll('.reveal');
 
+function revealVisibleElements() {
+    revealElements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 200 && rect.bottom > -200) {
+            el.classList.add('active');
+        }
+    });
+}
+
 const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -255,11 +264,19 @@ const revealObserver = new IntersectionObserver((entries, observer) => {
             observer.unobserve(entry.target);
         }
     });
-}, { threshold: 0.10 });
+}, { threshold: 0.05 });
 
 revealElements.forEach(el => {
     revealObserver.observe(el);
 });
+
+window.addEventListener('load', revealVisibleElements);
+window.addEventListener('scroll', revealVisibleElements, { passive: true });
+window.addEventListener('hashchange', () => {
+    setTimeout(revealVisibleElements, 100);
+});
+setTimeout(revealVisibleElements, 500);
+setTimeout(revealVisibleElements, 1800);
 
 // Loader 
 window.addEventListener('load', () => {
@@ -536,4 +553,605 @@ if (registerForm) {
         }
     });
 }
+
+// ==========================================================================
+// ARTIMUS 2K26 — ML FORECAST DASHBOARD INTEGRATION
+// ==========================================================================
+
+const API_BASE = window.location.origin.includes(':5000')
+    ? '/api'
+    : 'http://127.0.0.1:5000/api';
+
+const forecastState = {
+    summary: null,
+    monthlyTotals: [],
+    forecastRecords: [],
+    customers: [],
+    historicalData: null,
+    activeChartType: 'bar',
+    monthlyChartInstance: null,
+    historicalChartInstance: null,
+    searchQuery: '',
+    volumeFilter: 'all',
+    isLoading: false,
+    isOnline: false
+};
+
+/**
+ * Initialize Forecast Dashboard
+ */
+async function initForecastDashboard() {
+    const errorBanner = document.getElementById('forecast-error-banner');
+    const statusDot = document.getElementById('api-status-dot');
+    const statusText = document.getElementById('api-status-text');
+    const refreshBtn = document.getElementById('refresh-forecast-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+
+    if (!document.getElementById('forecast')) return;
+
+    try {
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        forecastState.isLoading = true;
+
+        if (statusDot) {
+            statusDot.className = 'pulse-dot warning';
+            statusText.textContent = 'CONNECTING TO FORECAST ENGINE...';
+        }
+
+        // Fetch all required data in parallel
+        const [summaryRes, forecastRes, customersRes, histRes] = await Promise.all([
+            fetch(`${API_BASE}/forecast/summary`).then(r => {
+                if (!r.ok) throw new Error(`Summary API returned ${r.status}`);
+                return r.json();
+            }),
+            fetch(`${API_BASE}/forecast`).then(r => {
+                if (!r.ok) throw new Error(`Forecast API returned ${r.status}`);
+                return r.json();
+            }),
+            fetch(`${API_BASE}/forecast/customers`).then(r => {
+                if (!r.ok) throw new Error(`Customer API returned ${r.status}`);
+                return r.json();
+            }),
+            fetch(`${API_BASE}/forecast/historical`).then(r => {
+                if (!r.ok) throw new Error(`Historical API returned ${r.status}`);
+                return r.json();
+            })
+        ]);
+
+        // Validate summary payload
+        if (summaryRes.status !== 'success') {
+            throw new Error(summaryRes.error || 'Failed to load forecast summary');
+        }
+
+        forecastState.summary = summaryRes;
+        forecastState.monthlyTotals = forecastRes.monthly_totals || [];
+        forecastState.forecastRecords = forecastRes.data || [];
+        forecastState.customers = customersRes.customers || [];
+        forecastState.historicalData = histRes;
+        forecastState.isOnline = true;
+
+        // Update status pill
+        if (statusDot) {
+            statusDot.className = 'pulse-dot';
+            statusText.textContent = 'API CONNECTED | 2027 WORKBOOK LIVE';
+        }
+        if (errorBanner) errorBanner.style.display = 'none';
+
+        // Update Last Updated Timestamp
+        const lastUpdatedEl = document.getElementById('last-updated-text');
+        if (lastUpdatedEl) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            lastUpdatedEl.innerHTML = `<i class="fa-solid fa-file-excel" style="color: #22c55e;"></i> Workbook Synced at ${timeStr}`;
+        }
+
+        // Render Dashboard Components
+        renderKPICards(summaryRes);
+        renderMonthlyStats(forecastState.monthlyTotals, forecastState.summary);
+        initOrUpdateMonthlyChart();
+        initOrUpdateHistoricalChart();
+        renderCustomerTable();
+
+        // Ensure reveal container is active
+        const forecastSec = document.getElementById('forecast');
+        if (forecastSec) {
+            const rev = forecastSec.querySelector('.reveal');
+            if (rev) rev.classList.add('active');
+        }
+
+    } catch (err) {
+        console.error('Forecast Dashboard Error:', err);
+        forecastState.isOnline = false;
+
+        if (statusDot) {
+            statusDot.className = 'pulse-dot error';
+            statusText.textContent = 'OFFLINE | BACKEND REQUIRED';
+        }
+
+        if (errorBanner) {
+            errorBanner.style.display = 'flex';
+            const msgEl = document.getElementById('forecast-error-message');
+            if (msgEl) {
+                msgEl.innerHTML = `Unable to communicate with Flask backend at <code>${API_BASE}</code> (${err.message}). Please ensure <code>python backend/app.py</code> is running.`;
+            }
+        }
+    } finally {
+        forecastState.isLoading = false;
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+    }
+}
+
+/**
+ * Render A. KPI Cards with dynamic values
+ */
+function renderKPICards(summary) {
+    const totalEl = document.getElementById('kpi-total-bookings');
+    const customersEl = document.getElementById('kpi-customers-analysed');
+    const monthsEl = document.getElementById('kpi-months-forecasted');
+    const yearEl = document.getElementById('kpi-forecast-year');
+    const accuracyEl = document.getElementById('kpi-accuracy-status');
+    const accuracySubEl = document.getElementById('kpi-accuracy-subtext');
+
+    if (totalEl) {
+        totalEl.innerHTML = Number(summary.total_estimated_bookings).toLocaleString();
+    }
+    if (customersEl) {
+        customersEl.innerHTML = summary.customers_analysed;
+    }
+    if (monthsEl) {
+        monthsEl.innerHTML = `${summary.months_forecasted} Months`;
+        const sub = document.getElementById('kpi-months-subtext');
+        if (sub && summary.forecasted_months) {
+            sub.textContent = summary.forecasted_months.join(', ');
+        }
+    }
+    if (yearEl) {
+        yearEl.innerHTML = summary.forecast_year;
+    }
+    if (accuracyEl) {
+        accuracyEl.textContent = summary.accuracy || 'Not evaluated';
+    }
+    if (accuracySubEl) {
+        accuracySubEl.textContent = summary.data_type || 'Baseline estimates, not confirmed bookings';
+    }
+}
+
+/**
+ * Render B. Monthly Stats (Cards & Breakdown)
+ */
+function renderMonthlyStats(monthlyTotals, summary) {
+    const total = summary.total_estimated_bookings || 2950;
+
+    monthlyTotals.forEach(m => {
+        const mLower = m.month.toLowerCase();
+        let boxId = '';
+        if (mLower.includes('jan')) boxId = 'jan';
+        else if (mLower.includes('feb')) boxId = 'feb';
+        else if (mLower.includes('mar')) boxId = 'mar';
+
+        if (boxId) {
+            const valEl = document.getElementById(`val-month-${boxId}`);
+            const pctEl = document.getElementById(`pct-month-${boxId}`);
+
+            if (valEl) {
+                valEl.innerHTML = Number(m.forecast_bookings).toLocaleString();
+            }
+            if (pctEl) {
+                const pct = ((m.forecast_bookings / total) * 100).toFixed(1);
+                pctEl.textContent = `${pct}% of Q1`;
+            }
+        }
+    });
+}
+
+/**
+ * Initialize or Update Monthly Forecast Chart (Chart.js)
+ */
+function initOrUpdateMonthlyChart() {
+    const canvas = document.getElementById('monthlyForecastChart');
+    if (!canvas || !window.Chart) return;
+
+    const ctx = canvas.getContext('2d');
+    const totals = forecastState.monthlyTotals;
+
+    const labels = totals.map(t => `${t.month} 2027`);
+    const dataValues = totals.map(t => t.forecast_bookings);
+
+    if (forecastState.monthlyChartInstance) {
+        forecastState.monthlyChartInstance.destroy();
+    }
+
+    const isBar = forecastState.activeChartType === 'bar';
+
+    // Gradients for bars / lines
+    const goldGradient = ctx.createLinearGradient(0, 0, 0, 300);
+    goldGradient.addColorStop(0, 'rgba(253, 224, 71, 0.85)');
+    goldGradient.addColorStop(1, 'rgba(180, 83, 9, 0.35)');
+
+    const chartConfig = {
+        type: isBar ? 'bar' : 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Forecast Bookings (2027)',
+                data: dataValues,
+                backgroundColor: isBar ? goldGradient : 'rgba(253, 224, 71, 0.15)',
+                borderColor: '#fde047',
+                borderWidth: 2,
+                borderRadius: isBar ? 8 : 0,
+                fill: !isBar,
+                tension: 0.35,
+                pointBackgroundColor: '#fde047',
+                pointBorderColor: '#0b1120',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 9
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 12 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(11, 17, 32, 0.95)',
+                    titleColor: '#fde047',
+                    bodyColor: '#f8fafc',
+                    borderColor: 'rgba(253, 224, 71, 0.4)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    titleFont: { family: "'Space Mono', monospace", size: 13, weight: 'bold' },
+                    bodyFont: { family: "'Inter', sans-serif", size: 12 },
+                    callbacks: {
+                        label: function (context) {
+                            const val = context.parsed.y;
+                            const total = forecastState.summary ? forecastState.summary.total_estimated_bookings : 2950;
+                            const pct = ((val / total) * 100).toFixed(1);
+                            return [
+                                `Estimated Bookings: ${val.toLocaleString()}`,
+                                `Share of Q1 2027: ${pct}%`,
+                                `Status: Arithmetic baseline average`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 12 }
+                    }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 11 },
+                        callback: function (val) { return val.toLocaleString(); }
+                    },
+                    suggestedMax: 1500
+                }
+            }
+        }
+    };
+
+    forecastState.monthlyChartInstance = new Chart(ctx, chartConfig);
+}
+
+/**
+ * Initialize or Update Historical Analysis Chart (Chart.js)
+ */
+function initOrUpdateHistoricalChart() {
+    const canvas = document.getElementById('historicalComparisonChart');
+    if (!canvas || !window.Chart || !forecastState.historicalData) return;
+
+    const ctx = canvas.getContext('2d');
+    const comp = forecastState.historicalData.comparison || [];
+
+    const labels = comp.map(c => c.month);
+    const data2024 = comp.map(c => c.actual_2024);
+    const data2025 = comp.map(c => c.actual_2025);
+    const data2027 = comp.map(c => c.forecast_2027);
+
+    if (forecastState.historicalChartInstance) {
+        forecastState.historicalChartInstance.destroy();
+    }
+
+    const chartConfig = {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '2024 Actual',
+                    data: data2024,
+                    backgroundColor: 'rgba(180, 83, 9, 0.75)',
+                    borderColor: '#b45309',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                },
+                {
+                    label: '2025 Actual',
+                    data: data2025,
+                    backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                    borderColor: '#f59e0b',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                },
+                {
+                    label: '2027 Forecast',
+                    data: data2027,
+                    backgroundColor: 'rgba(253, 224, 71, 0.9)',
+                    borderColor: '#fde047',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 11 },
+                        boxWidth: 14
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(11, 17, 32, 0.95)',
+                    titleColor: '#fde047',
+                    bodyColor: '#f8fafc',
+                    borderColor: 'rgba(253, 224, 71, 0.4)',
+                    borderWidth: 1,
+                    padding: 10,
+                    titleFont: { family: "'Space Mono', monospace", size: 12, weight: 'bold' },
+                    bodyFont: { family: "'Inter', sans-serif", size: 11 }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 11 }
+                    }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: {
+                        color: '#cbd5e1',
+                        font: { family: "'Space Mono', monospace", size: 10 },
+                        callback: function (val) { return val.toLocaleString(); }
+                    }
+                }
+            }
+        }
+    };
+
+    forecastState.historicalChartInstance = new Chart(ctx, chartConfig);
+}
+
+/**
+ * Render C. Customer Table with Search & Volume Filtering
+ */
+function renderCustomerTable() {
+    const tbody = document.getElementById('customer-table-body');
+    const countEl = document.getElementById('table-record-count');
+    if (!tbody) return;
+
+    let list = [...forecastState.customers];
+
+    // Filter by search query
+    if (forecastState.searchQuery.trim()) {
+        const q = forecastState.searchQuery.trim().toLowerCase();
+        list = list.filter(c => String(c.customer_id).toLowerCase().includes(q));
+    }
+
+    // Filter by volume tier
+    if (forecastState.volumeFilter === 'high') {
+        list = list.filter(c => c.estimated_bookings >= 100);
+    } else if (forecastState.volumeFilter === 'medium') {
+        list = list.filter(c => c.estimated_bookings >= 20 && c.estimated_bookings < 100);
+    } else if (forecastState.volumeFilter === 'low') {
+        list = list.filter(c => c.estimated_bookings < 20);
+    }
+
+    if (countEl) {
+        countEl.textContent = `Showing ${list.length} of ${forecastState.customers.length} customers`;
+    }
+
+    if (list.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4" style="color: var(--text-muted); font-family: var(--font-mono);">
+                    <i class="fa-solid fa-filter-circle-xmark"></i> No customers match query "${forecastState.searchQuery}".
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = list.map(c => {
+        const jan = c.monthly_breakdown?.January !== undefined ? c.monthly_breakdown.January : '--';
+        const feb = c.monthly_breakdown?.February !== undefined ? c.monthly_breakdown.February : '--';
+        const mar = c.monthly_breakdown?.March !== undefined ? c.monthly_breakdown.March : '--';
+        const confClass = (c.confidence || '').toLowerCase().includes('very') ? 'very-low' : 'low';
+
+        return `
+            <tr>
+                <td><span class="customer-id-pill">#${c.customer_id}</span></td>
+                <td>${c.forecast_year}</td>
+                <td>${jan}</td>
+                <td>${feb}</td>
+                <td>${mar}</td>
+                <td><strong class="booking-highlight">${c.estimated_bookings.toLocaleString()}</strong></td>
+                <td><span class="conf-pill ${confClass}">${c.confidence || 'Low'}</span></td>
+                <td>
+                    <button class="table-btn" onclick="openCustomerModal(${c.customer_id})">
+                        <i class="fa-solid fa-chart-pie"></i> Details
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+/**
+ * Open Customer Breakdown Modal
+ */
+function openCustomerModal(customerId) {
+    const modal = document.getElementById('customer-modal');
+    const title = document.getElementById('cmodal-title');
+    const body = document.getElementById('cmodal-body');
+
+    if (!modal || !body) return;
+
+    const customer = forecastState.customers.find(c => c.customer_id === customerId);
+    if (!customer) return;
+
+    // Also look up historical patterns for this customer if available
+    let histInfo = null;
+    if (forecastState.historicalData?.customer_patterns) {
+        histInfo = forecastState.historicalData.customer_patterns.find(p => p.customer_id === customerId);
+    }
+
+    title.innerHTML = `CUSTOMER #${customer.customer_id} — FORECAST BREAKDOWN`;
+
+    const jan = customer.monthly_breakdown?.January ?? 'N/A';
+    const feb = customer.monthly_breakdown?.February ?? 'N/A';
+    const mar = customer.monthly_breakdown?.March ?? 'N/A';
+    const h2024 = histInfo ? histInfo.actual_2024 : 'Available in sheet';
+    const h2025 = histInfo ? histInfo.actual_2025 : 'Available in sheet';
+
+    body.innerHTML = `
+        <div style="margin-bottom: 1.25rem;">
+            <p style="margin-bottom: 0.5rem; color: var(--text-primary);">
+                <strong>Target Year:</strong> ${customer.forecast_year} (Q1 Baseline)
+            </p>
+            <p style="margin-bottom: 0.5rem; color: var(--text-primary);">
+                <strong>Total Estimated Q1 Bookings:</strong> <span class="booking-highlight" style="font-size: 1.2rem;">${customer.estimated_bookings}</span>
+            </p>
+            <p style="margin-bottom: 0.5rem; color: var(--text-primary);">
+                <strong>Confidence Rating:</strong> <span class="conf-pill low">${customer.confidence || 'Low'}</span> (limited historical multi-year records)
+            </p>
+        </div>
+
+        <div style="background: rgba(11, 17, 32, 0.7); border: 1px solid rgba(253, 224, 71, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+            <h5 style="color: var(--neon-cyan); font-family: var(--font-mono); margin-bottom: 0.75rem;">2027 MONTHLY ESTIMATES</h5>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+                <div style="background: rgba(30, 41, 59, 0.5); padding: 8px; border-radius: 6px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">JAN 2027</div>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: var(--neon-cyan);">${jan}</div>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.5); padding: 8px; border-radius: 6px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">FEB 2027</div>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: var(--neon-cyan);">${feb}</div>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.5); padding: 8px; border-radius: 6px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">MAR 2027</div>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: var(--neon-cyan);">${mar}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: rgba(11, 17, 32, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 1rem;">
+            <h5 style="color: #cbd5e1; font-family: var(--font-mono); margin-bottom: 0.5rem;">HISTORICAL VOLUME REFERENCE</h5>
+            <p style="font-size: 0.82rem; margin-bottom: 0.3rem;">• <strong>2024 Actual Q1 Bookings:</strong> ${h2024}</p>
+            <p style="font-size: 0.82rem; margin-bottom: 0.3rem;">• <strong>2025 Actual Q1 Bookings:</strong> ${h2025}</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;">
+                Calculation: Arithmetic mean of 2024 & 2025 observations for same month. Months without historical data remain unforecasted.
+            </p>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
+
+function closeCustomerModal() {
+    const modal = document.getElementById('customer-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Setup Event Listeners for Dashboard Controls
+function setupForecastEventListeners() {
+    // 1. Chart view toggle (Bar / Line)
+    const btnBar = document.getElementById('btn-chart-bar');
+    const btnLine = document.getElementById('btn-chart-line');
+
+    if (btnBar && btnLine) {
+        btnBar.addEventListener('click', () => {
+            btnBar.classList.add('active');
+            btnLine.classList.remove('active');
+            forecastState.activeChartType = 'bar';
+            initOrUpdateMonthlyChart();
+        });
+
+        btnLine.addEventListener('click', () => {
+            btnLine.classList.add('active');
+            btnBar.classList.remove('active');
+            forecastState.activeChartType = 'line';
+            initOrUpdateMonthlyChart();
+        });
+    }
+
+    // 2. Customer search input
+    const searchInput = document.getElementById('customer-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            forecastState.searchQuery = e.target.value;
+            renderCustomerTable();
+        });
+    }
+
+    // 3. Customer volume filter
+    const volumeFilter = document.getElementById('customer-volume-filter');
+    if (volumeFilter) {
+        volumeFilter.addEventListener('change', (e) => {
+            forecastState.volumeFilter = e.target.value;
+            renderCustomerTable();
+        });
+    }
+
+    // 4. Manual sync/refresh button
+    const refreshBtn = document.getElementById('refresh-forecast-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            initForecastDashboard();
+        });
+    }
+
+    // 5. Close customer modal on background click
+    const customerModal = document.getElementById('customer-modal');
+    if (customerModal) {
+        customerModal.addEventListener('click', (e) => {
+            if (e.target === customerModal) {
+                closeCustomerModal();
+            }
+        });
+    }
+}
+
+// Auto-run when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setupForecastEventListeners();
+        initForecastDashboard();
+    });
+} else {
+    setupForecastEventListeners();
+    initForecastDashboard();
+}
+
 
