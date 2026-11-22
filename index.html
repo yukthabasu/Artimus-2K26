@@ -1,0 +1,514 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARTIMUS 2K26 | ARCANE</title>
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Welcome Loader -->
+    <div id="welcome-loader" class="welcome-loader">
+        <div class="loader-content" style="text-align: center;">
+            <img src="images/logo.png" alt="Artimus 2K26 Logo" class="loader-logo">
+        </div>
+    </div>
+
+    <!-- Dynamic Aesthetic Arcane Background -->
+    <div id="bg-slider" class="bg-slider">
+        <div class="bg-overlay"></div>
+    </div>
+
+    <!-- Interactive Spider Web Background -->
+    <canvas id="spider-web" class="spider-web"></canvas>
+
+    <!-- Navigation (Neuraverse Style) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-container">
+                <img src="images/logo.png" alt="Artimus 2K26" class="site-logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#events">Events</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="#register" class="neon-btn small-btn">Register Now</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Countdown -->
+    <section id="home" class="hero">
+        <div class="hero-bg-lines"></div>
+        <div class="hero-glow"></div>
+
+        <div class="hero-content reveal">
+            <div class="hero-badge">THE CHAMPIONSHIP OF THE UNDERCITY</div>
+            <img src="images/logo.png" alt="Artimus 2K26" class="hero-main-logo">
+            <h1 class="hero-title glitch" data-text="ARTIMUS 2K26">ARTIMUS 2K26</h1>
+            <p class="hero-subtitle">Experience the Hextech Revolution. Battle for dominance in Zaun.</p>
+
+            <!-- Artimus Event Details -->
+            <div class="event-info" style="margin: 25px auto; padding: 20px; max-width: 650px; text-align: center; border: 1px solid #00f0ff; border-radius: 12px; background: rgba(0, 240, 255, 0.06); color: #ffffff;">
+                <p style="margin: 8px 0; font-size: 1.1rem;"><strong>DATE:</strong> 30 - 31 December 2026</p>
+                <p style="margin: 8px 0; font-size: 1.1rem;"><strong>TIME:</strong> 30 Dec, 10:00 AM - 31 Dec, 10:00 AM</p>
+                <p style="margin: 8px 0; font-size: 1.1rem;"><strong>VENUE:</strong> Seminar Hall, Student Activity Center (SAC), DSATM</p>
+            </div>
+            <!-- Countdown Timer -->
+            <div class="countdown-container">
+                <div class="time-box">
+                    <span class="time-val" id="days">00</span>
+                    <span class="time-label">DAYS</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-val" id="hours">00</span>
+                    <span class="time-label">HOURS</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-val" id="minutes">00</span>
+                    <span class="time-label">MINUTES</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-val" id="seconds">00</span>
+                    <span class="time-label">SECONDS</span>
+                </div>
+            </div>
+
+            <div class="hero-cta">
+                <a href="#events" class="neon-btn primary-btn">Explore Events</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section (Grid with Filters) -->
+    <section id="events" class="events-section">
+        <div class="container">
+            <h2 class="section-title text-center reveal">THE <span class="gradient-text">PROVING GROUNDS</span></h2>
+
+            <!-- Filters -->
+            <div class="filter-container reveal">
+                <button class="filter-btn active" data-filter="all">All Events</button>
+                <button class="filter-btn" data-filter="tech">Hextech Trials (Tech)</button>
+                <button class="filter-btn" data-filter="non-tech">Undercity (Non-Tech)</button>
+            </div>
+
+            <!-- Neuraverse Grid Cards -->
+            <div class="neura-grid">
+
+                <!-- Heimerdinger's Think Tank -->
+                <div class="neura-card reveal tech-event" data-category="tech" onclick="openModal('think-tank')">
+                    <div class="card-img-container">
+                        <img src="images/event_Heimerdinger.jpg" alt="Heimerdinger">
+                        <div class="event-element-icon"><i class="fa-solid fa-brain"></i></div>
+                        <div class="card-badge tech-badge">Hextech</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Prompt Arena (Ask GPT)</h3>
+                        <p class="card-desc">Ask GPT is an AI-based event that tests participantsâ€™ creativity and
+                            prompt-writing skills. Teams must describe a given word clearly so that GPT can correctly
+                            guess it without the word being mentioned.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hextech Cipher Hunt -->
+                <div class="neura-card reveal tech-event" data-category="tech" onclick="openModal('cipher-hunt')"
+                    style="transition-delay: 100ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Jayce.jpg" alt="Jayce">
+                        <div class="event-element-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <div class="card-badge tech-badge">Hextech</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Cipher Run (Treasure hunt)</h3>
+                        <p class="card-desc">Treasure Hunt is an exciting problem-solving event where participants must
+                            solve a series of clues to progress through the game.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zaunite Code Breakers -->
+                <div class="neura-card reveal tech-event" data-category="tech" onclick="openModal('code-breakers')"
+                    style="transition-delay: 200ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Ekko.jpg" alt="Hexcore">
+                        <div class="event-element-icon"><i class="fa-solid fa-bug"></i></div>
+                        <div class="card-badge tech-badge">Hextech</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Glitch hunt (Bug Bounty)</h3>
+                        <p class="card-desc">Bug Bounty is a technical event where participants identify bugs in
+                            programs and find vulnerabilities in websites. The event tests debugging ability, logical
+                            thinking, and programming knowledge.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hextech Innovation Forge -->
+                <div class="neura-card reveal tech-event" data-category="tech" onclick="openModal('innovation-forge')"
+                    style="transition-delay: 300ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Viktor.jpg" alt="Viktor">
+                        <div class="event-element-icon"><i class="fa-solid fa-code"></i></div>
+                        <div class="card-badge tech-badge">Hextech</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Code Forge (Mini hackathon)</h3>
+                        <p class="card-desc">Mini Hackathon is a fast-paced coding competition where participants solve
+                            a given problem within a limited time. Teams must design and build an innovative solution
+                            using their technical skills and creativity.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Piltover Power Auction -->
+                <div class="neura-card reveal non-tech-event" data-category="non-tech"
+                    onclick="openModal('power-auction')">
+                    <div class="card-img-container">
+                        <img src="images/event_Silco.jpg" alt="Silco" style="object-position: top;">
+                        <div class="event-element-icon"><i class="fa-solid fa-gavel"></i></div>
+                        <div class="card-badge non-tech-badge">Undercity</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">PowerPlay Draft (IPL Auction)</h3>
+                        <p class="card-desc">Manage your virtual budget and bid on players to build the ultimate team.
+                        </p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zaun Carnival -->
+                <div class="neura-card reveal non-tech-event" data-category="non-tech"
+                    onclick="openModal('zaun-carnival')" style="transition-delay: 100ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Jinx.jpg" alt="Jinx">
+                        <div class="event-element-icon"><i class="fa-solid fa-masks-theater"></i></div>
+                        <div class="card-badge non-tech-badge">Undercity</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Chaos Carnival (Fun Fiesta)</h3>
+                        <p class="card-desc">Welcome to the Fun Fiesta! Mini-games and activities straight out of the
+                            Firelights' hideout.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arcane Battle Nexus -->
+                <div class="neura-card reveal non-tech-event" data-category="non-tech"
+                    onclick="openModal('battle-nexus')" style="transition-delay: 200ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Vi.jpg" alt="Vi">
+                        <div class="event-element-icon"><i class="fa-solid fa-gamepad"></i></div>
+                        <div class="card-badge non-tech-badge">Undercity</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Jinx Playground (E-Sports)</h3>
+                        <p class="card-desc">Step into the ring. Prove your mechanical prowess in standard Esports
+                            tournament brackets.</p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Council of Piltover Gala -->
+                <div class="neura-card reveal non-tech-event" data-category="non-tech"
+                    onclick="openModal('piltover-gala')" style="transition-delay: 300ms;">
+                    <div class="card-img-container">
+                        <img src="images/event_Mel.jpg" alt="Mel">
+                        <div class="event-element-icon"><i class="fa-solid fa-music"></i></div>
+                        <div class="card-badge non-tech-badge">Undercity</div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">SoundStorm (Sound Party)</h3>
+                        <p class="card-desc">A formal Gowned Party where the elite of topside gather. Dress to impress.
+                        </p>
+                        <div class="card-footer">
+                            <span class="view-link">View Rules âž”</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section id="register" class="register-section">
+        <div class="container reveal">
+            <h2 class="section-title text-center" style="margin-bottom: 1rem; letter-spacing: 2px;">JOIN THE <span
+                    class="gradient-text"
+                    style="color: var(--neon-cyan); background: none; -webkit-text-fill-color: var(--neon-cyan);">REVOLUTION</span>
+            </h2>
+            <p class="text-center text-muted"
+                style="margin-bottom: 4rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                Register now to be part of the most exciting technical symposium. Fill in your details and select your
+                preferred events.</p>
+
+            <form id="registration-form" class="registration-form">
+                <!-- Personal Details Block -->
+                <div class="form-block">
+                    <h3 class="block-title" style="color: var(--neon-cyan);">PERSONAL DETAILS</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>FULL NAME *</label>
+                            <div class="input-container">
+                                <i class="fa-regular fa-user"></i>
+                                <input type="text" name="full_name" placeholder="Enter your name" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>EMAIL ADDRESS *</label>
+                            <div class="input-container">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" name="email" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>PHONE NUMBER *</label>
+                            <div class="input-container">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="tel" name="phone" placeholder="Enter your phone number" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>COLLEGE NAME *</label>
+                            <div class="input-container">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <input type="text" name="college" placeholder="Enter your college name" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>YEAR OF STUDY *</label>
+                            <select name="year" required>
+                                <option value="" disabled selected>Select year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>DEPARTMENT *</label>
+                            <input type="text" name="department" placeholder="e.g., Computer Science"
+                                class="no-icon-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Select Events Block -->
+                <div class="form-block">
+                    <h3 class="block-title" style="color: var(--neon-cyan);">SELECT EVENTS</h3>
+                    <p class="block-desc">Choose the events you want to participate in. You can select multiple events.
+                    </p>
+
+                    <h4 class="category-title" style="color: var(--neon-cyan);">TECHNICAL EVENTS</h4>
+                    <div class="checkbox-grid tech-events">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Prompt Arena (Ask GPT)">
+                            <span class="checkmark"></span>
+                            Prompt Arena (Ask GPT)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Cipher Run (Treasure hunt)">
+                            <span class="checkmark"></span>
+                            Cipher Run (Treasure hunt)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Glitch hunt (Bug Bounty)">
+                            <span class="checkmark"></span>
+                            Glitch hunt (Bug Bounty)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Code Forge (Mini hackathon)">
+                            <span class="checkmark"></span>
+                            Code Forge (Mini hackathon)
+                        </label>
+                    </div>
+
+                    <h4 class="category-title" style="color: var(--neon-pink); margin-top: 1.5rem;">NON-TECHNICAL EVENTS
+                    </h4>
+                    <div class="checkbox-grid non-tech-events">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="PowerPlay Draft (IPL Auction)">
+                            <span class="checkmark"></span>
+                            PowerPlay Draft (IPL Auction)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Chaos Carnival (Fun Fiesta)">
+                            <span class="checkmark"></span>
+                            Chaos Carnival (Fun Fiesta)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="Jinx Playground (E-Sports)">
+                            <span class="checkmark"></span>
+                            Jinx Playground (E-Sports)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="events" value="SoundStorm (Sound Party)">
+                            <span class="checkmark"></span>
+                            SoundStorm (Sound Party)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Team Details Block -->
+                <div class="form-block">
+                    <h3 class="block-title" style="color: var(--elite-gold);"><i class="fa-solid fa-user-group"></i>
+                        TEAM DETAILS (OPTIONAL)</h3>
+                    <p class="block-desc">If participating in team events, provide your team member details.</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <input type="text" name="team_member_1_name" placeholder="Team Member 1 Name"
+                                class="no-icon-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="team_member_1_email" placeholder="Team Member 1 Email"
+                                class="no-icon-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="team_member_2_name" placeholder="Team Member 2 Name"
+                                class="no-icon-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="team_member_2_email" placeholder="Team Member 2 Email"
+                                class="no-icon-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="team_member_3_name" placeholder="Team Member 3 Name"
+                                class="no-icon-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="team_member_3_email" placeholder="Team Member 3 Email"
+                                class="no-icon-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-submit text-center" style="margin-top: 3rem;">
+                    <button type="submit" class="neon-btn secondary-btn" id="submit-btn" disabled
+                        style="opacity: 0.5; cursor: not-allowed; background: var(--bg-card); color: var(--text-muted); border-color: rgba(255,255,255,0.1);">REGISTER
+                        NOW</button>
+                    <p class="submit-note" id="submit-note"
+                        style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">Please select at least
+                        one event to continue</p>
+                </div>
+                <div id="form-message" class="text-center"
+                    style="display: none; margin-top: 1rem; font-family: var(--font-mono); padding: 1rem; border-radius: 4px;">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <div class="container reveal">
+        <h2 class="section-title text-center">CONTACT <span class="gradient-text">US</span></h2>
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+                <h3>Student Coordinators</h3>
+                <div style="margin-top: 1rem; text-align: left; display: inline-block;">
+                    <p class="monospace-text" style="color: var(--neon-cyan); margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
+                        <span>Yashas CM:<br><span style="color: white;">+91 8971010051</span></span>
+                        <a href="tel:+918971010051" class="neon-btn small-btn" style="padding: 8px 12px; min-width: auto;"><i class="fa-solid fa-phone"></i> Call</a>
+                    </p>
+                    <p class="monospace-text" style="color: var(--neon-pink); display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 1rem;">
+                        <span>Parvathi:<br><span style="color: white;">+91 9902075137</span></span>
+                        <a href="tel:+919902075137" class="neon-btn small-btn" style="padding: 8px 12px; min-width: auto;"><i class="fa-solid fa-phone"></i> Call</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fa-solid fa-ticket"></i></div>
+                <h3>Registration Fee</h3>
+                <div class="fee-amount gradient-text">&#8377;100</div>
+                <p>Per Participant</p>
+                <a href="#register" class="neon-btn small-btn mt-4">Register Now</a>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <h3>Location</h3>
+                <p class="monospace-text">Dayananda Sagar Academy of Technology and Management</p>
+                <p>Kanakapura Main Rd, UDAYAPURA,<br>
+                    Badamanavarathekaval,<br>
+                    Karnataka 560082</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=Dayananda+Sagar+Academy+of+Technology+and+Management+Kanakapura+Main+Road+Bengaluru" target="_blank" rel="noopener noreferrer" class="neon-btn small-btn mt-4">
+                    <i class="fa-solid fa-location-arrow" style="margin-right: 8px;"></i>Navigate
+                </a>
+            </div>
+        </div>
+    </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h2>ARTIMUS <span class="gradient-text">2K26</span></h2>
+                <p>The Glorious Evolution meets Zaunite Chaos.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#events">Events</a>
+                <a href="#contact">Contact</a>
+                <a href="#register">Register</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Artimus 2K26 Symposium. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Modals Container -->
+    <div id="modal-container" class="modal-container">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="modal-body">
+                <div class="modal-image-col">
+                    <img id="modal-char-img" src="" alt="Character">
+                    <div class="modal-overlay-glow"></div>
+                </div>
+                <div class="modal-text-col">
+                    <h2 id="modal-title" class="modal-title">Event Title</h2>
+                    <div class="modal-rules monospace-text" id="modal-rules">
+                        <!-- Rules injected via JS -->
+                    </div>
+                    <button class="neon-btn primary-btn w-100 mt-4" onclick="closeModal(); document.getElementById('register').scrollIntoView({behavior: 'smooth'});">Register For Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>
+
+
+
+

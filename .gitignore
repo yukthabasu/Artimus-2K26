@@ -1,0 +1,27 @@
+﻿# Python environments
+.venv/
+.venv-linux/
+venv/
+__pycache__/
+*.py[cod]
+
+# Private registration databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Temporary and backup files
+*.bak
+*.backup
+*.contact-backup
+*.countdown-backup
+*.event-backup
+
+# System files
+.DS_Store
+Thumbs.db
